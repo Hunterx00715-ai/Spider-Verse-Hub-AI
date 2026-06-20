@@ -80,7 +80,7 @@ msg.voice =
     voices.find(v => v.lang === "en-US");
 
 msg.rate = 1.02;
-msg.pitch = 1.20;
+msg.pitch = 1.50;
 msg.volume = 1.0;
 
         speechSynthesis.speak(msg);
