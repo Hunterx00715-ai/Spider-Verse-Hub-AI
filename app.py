@@ -180,7 +180,7 @@ Rules:
 
                 with col1:
                     if st.button("🔊 Speak", key=f"speak_{len(st.session_state.history)}"):
-                        st.components.v1.html(
+                        st.iframe(
                             f"""
                             <script>
                             speechSynthesis.cancel();
