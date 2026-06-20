@@ -4,6 +4,7 @@ from google import genai
 from google.genai import types
 import json
 import os
+import time
 
 try:
     client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
@@ -49,58 +50,62 @@ WATCH_ORDERS, COMICS_ORDER, GAMES_DB, MUSIC_TRACKS, MULTIVERSE_BIOS, UPCOMING_RE
 
 st.set_page_config(page_title="Spider-Verse Hub", page_icon="🕷️", layout="centered")
 st.markdown("<style>.stApp { background-image: url('https://www.transparenttextures.com/patterns/cobweb.png'); background-color: #0E1117; }</style>", unsafe_allow_html=True)
+if os.path.exists("spiderman.png"):
+    st.image("spiderman.png", width=150)
+
 st.markdown("<h1 style='text-align: center;'>🕷️ Spider-Verse Hub AI</h1>", unsafe_allow_html=True)
 
 # Intro button
+if "intro_counter" not in st.session_state:
+    st.session_state.intro_counter = 0
 if st.button("🔊 Play Intro"):
-    js = """
-    ```javascript
-<script>
 
-let introPlayed = false;
+    st.session_state.intro_counter += 1
 
-function speakIntro() {
+    st.components.v1.html(
+        f"""
+        <script>
+        speechSynthesis.cancel();
 
-    if (introPlayed) return;
-    introPlayed = true;
+        const msg = new SpeechSynthesisUtterance(
+            "Hey there. I'm your friendly neighborhood Spider-Man. What can I help you with today?"
+        );
 
-    const voices = speechSynthesis.getVoices();
+        msg.rate = 0.97;
+        msg.pitch = 1.05;
+        msg.volume = 1.0;
 
-    let voice =
-        voices.find(v => v.name.includes("Google UK English Male")) ||
-        voices.find(v => v.name.includes("Google US English")) ||
-        voices.find(v => v.name.includes("Microsoft Guy")) ||
-        voices.find(v => v.name.includes("Microsoft David")) ||
-        voices.find(v => v.lang === "en-US");
+        speechSynthesis.speak(msg);
+        </script>
 
-    const msg = new SpeechSynthesisUtterance(
-        "Hey there. I'm your friendly neighborhood Spider-Man. What can I help you with today?"
-    );
-
-    msg.voice = voice;
-
-    // More human-like settings
-    msg.rate = 0.92;
-    msg.pitch = 1.02;
-    msg.volume = 1.0;
-
-    speechSynthesis.cancel();
-    speechSynthesis.speak(msg);
-}
-
-if (speechSynthesis.getVoices().length) {
-    speakIntro();
-} else {
-    speechSynthesis.onvoiceschanged = speakIntro;
-}
-
-</script>
-```
-
-    """
-    st.components.v1.html(js, height=0)
+        <div style="display:none">
+            {st.session_state.intro_counter}
+        </div>
+        """,
+        height=0,
+    )
 
 MEMORY_FILE = "spidey_memory.json"
+st.markdown("""
+<style>
+div[data-testid="stButton"] button {
+    width:auto !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+col1, col2 = st.columns([10,1])
+
+with col2:
+    if st.button("🗑"):
+        st.session_state.history = []
+
+        if os.path.exists(MEMORY_FILE):
+            os.remove(MEMORY_FILE)
+
+        st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 if "history" not in st.session_state:
 
@@ -109,13 +114,18 @@ if "history" not in st.session_state:
             st.session_state.history = json.load(f)
     else:
         st.session_state.history = []
-for i, msg in enumerate(st.session_state.history):
-    with st.chat_message(msg["role"]):
+for msg in st.session_state.history:
+
+    avatar = "🕷️" if msg["role"] == "assistant" else "👤"
+
+    with st.chat_message(msg["role"], avatar=avatar):
         st.markdown(msg["content"])
 
 conversation_context = "\n".join(
-    f"{msg['role']}: {msg['content']}" for msg in st.session_state.history
+    f"{msg['role']}: {msg['content']}"
+    for msg in st.session_state.history[-100:]
 )
+
 
 if query_str := st.chat_input("Ask about Spider-Man..."):
 
@@ -124,7 +134,7 @@ if query_str := st.chat_input("Ask about Spider-Man..."):
         "content": query_str
     })
 
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar="👤"):
         st.markdown(query_str)
 
     with st.spinner("Swinging through the web..."):
@@ -132,11 +142,15 @@ if query_str := st.chat_input("Ask about Spider-Man..."):
         try:
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
-               contents=f""" You are Peter Parker from The Amazing Spider-Man. 
-               You are friendly, funny, intelligent and natural. 
-               Always stay in character as Spider-Man. 
-               Always search Google before answering. 
-               Remember all previous messages and use them when responding. 
+               contents=f""" You are Peter Parker from The Amazing Spider-Man.
+
+Rules:
+1. Answer the question directly first.
+2. Then add a short Spider-Man style comment.
+3. Never give long roleplay introductions.
+4. Use Google Search results whenever available.
+5. Remember previous conversations.
+6. Be concise and accurate.
                Conversation History: 
                {conversation_context} 
                Current User Question: 
@@ -148,9 +162,48 @@ if query_str := st.chat_input("Ask about Spider-Man..."):
             )
 
             ai_out = response.text
+            with st.chat_message("assistant"):
+                st.markdown(ai_out)
+            with st.chat_message("assistant", avatar="🕷️"):
+                st.markdown(ai_out)
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    if st.button("🔊 Speak", key=f"speak_{len(st.session_state.history)}"):
+                        st.components.v1.html(
+                            f"""
+                            <script>
+                            speechSynthesis.cancel();
+
+                            const msg = new SpeechSynthesisUtterance(`{ai_out}`);
+
+                            msg.rate = 0.92;
+                            msg.pitch = 1.02;
+                            msg.volume = 1;
+
+                            speechSynthesis.speak(msg);
+                            </script>
+                            """,
+                            height=0,
+                        )
+
+                with col2:
+                    if st.button("⏹ Stop", key=f"stop_{len(st.session_state.history)}"):
+                        st.components.v1.html(
+                            f"""
+                            <script>
+                            speechSynthesis.cancel();
+                            ...
+                            speechSynthesis.speak(msg);
+                            </script>
+                            """,
+                            height=0
+)
+
 
         except Exception as e:
-            ai_out = f"❌ Error: {str(e)}"
+                ai_out = f"❌ Error: {str(e)}"
 
     st.session_state.history.append({
         "role": "assistant",
