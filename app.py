@@ -169,58 +169,67 @@ Rules:
             )
 
             ai_out = response.text
-            with st.chat_message("assistant", avatar="🕷️"):
-                    st.markdown(ai_out)
-
-                    col1, col2 = st.columns([1, 1])
-
-                    with col1:
-                        if st.button("🔊 Speak", key=f"speak_{len(st.session_state.history)}"):
-                            st.components.v1.html(
-                                f"""
-                                <script>
-                                speechSynthesis.cancel();
-
-                                const msg = new SpeechSynthesisUtterance(`{ai_out}`);
-
-                                const voices = speechSynthesis.getVoices();
-
-                                msg.voice =
-                                    voices.find(v => v.name.includes("Google UK English Male")) ||
-                                    voices.find(v => v.name.includes("Google US English")) ||
-                                    voices.find(v => v.name.includes("Microsoft David")) ||
-                                    voices.find(v => v.lang === "en-US");
-
-                                msg.rate = 0.95;
-                                msg.pitch = 1.05;
-                                msg.volume = 1.0;
-
-                                speechSynthesis.speak(msg);
-                                </script>
-                                """,
-                                height=0,
-                            )
-
-                    with col2:
-                        if st.button("⏹ Stop", key=f"stop_{len(st.session_state.history)}"):
-                            st.components.v1.html(
-                                """
-                                <script>
-                                speechSynthesis.cancel();
-                                </script>
-                                """,
-                                height=0,
-                            )
-
 
         except Exception as e:
-                ai_out = f"❌ Error: {str(e)}"
+            ai_out = f"❌ Error: {str(e)}"
+
+    st.session_state.last_ai_response = ai_out
+
+    with st.chat_message("assistant", avatar="🕷️"):
+        st.markdown(ai_out)
 
     st.session_state.history.append({
         "role": "assistant",
         "content": ai_out
     })
+
     with open(MEMORY_FILE, "w", encoding="utf-8") as f:
         json.dump(st.session_state.history, f, indent=2, ensure_ascii=False)
 
-        st.rerun()
+    st.rerun()
+
+# ---------- SPEAK / STOP BUTTONS ----------
+
+if "last_ai_response" in st.session_state:
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("🔊 Speak", key="speak_btn"):
+            st.components.v1.html(
+                f"""
+                <script>
+                speechSynthesis.cancel();
+
+                const msg = new SpeechSynthesisUtterance(
+                    `{st.session_state.last_ai_response}`
+                );
+
+                const voices = speechSynthesis.getVoices();
+
+                msg.voice =
+                    voices.find(v => v.name.includes("Google UK English Male")) ||
+                    voices.find(v => v.name.includes("Google US English")) ||
+                    voices.find(v => v.name.includes("Microsoft David")) ||
+                    voices.find(v => v.lang === "en-US");
+
+                msg.rate = 0.93;
+                msg.pitch = 5.69;
+                msg.volume = 0.8;
+
+                speechSynthesis.speak(msg);
+                </script>
+                """,
+                height=0,
+            )
+
+    with col2:
+        if st.button("⏹ Stop", key="stop_btn"):
+            st.components.v1.html(
+                """
+                <script>
+                speechSynthesis.cancel();
+                </script>
+                """,
+                height=0,
+            )
