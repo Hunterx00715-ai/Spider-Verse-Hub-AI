@@ -68,12 +68,21 @@ if st.button("🔊 Play Intro"):
         speechSynthesis.cancel();
 
         const msg = new SpeechSynthesisUtterance(
-            "Hey there. I'm your friendly neighborhood Spider-Man. What can I help you with today?"
-        );
+    "Hey there. I'm your friendly neighborhood Spider-Man. What can I help you with today?"
+);
 
-        msg.rate = 0.97;
-        msg.pitch = 1.05;
-        msg.volume = 1.0;
+const voices = speechSynthesis.getVoices();
+
+msg.voice =
+    voices.find(v => v.name.includes("Microsoft Aria")) ||
+    voices.find(v => v.name.includes("Microsoft Jenny")) ||
+    voices.find(v => v.name.includes("Google UK English Female")) ||
+    voices.find(v => v.name.includes("Google US English")) ||
+    voices.find(v => v.lang === "en-US");
+
+msg.rate = 0.94;
+msg.pitch = 1.08;
+msg.volume = 1.0;
 
         speechSynthesis.speak(msg);
         </script>
