@@ -169,44 +169,48 @@ Rules:
             )
 
             ai_out = response.text
-            with st.chat_message("assistant"):
-                st.markdown(ai_out)
             with st.chat_message("assistant", avatar="🕷️"):
-                st.markdown(ai_out)
+                    st.markdown(ai_out)
 
-                col1, col2 = st.columns(2)
+                    col1, col2 = st.columns([1, 1])
 
-                with col1:
-                    if st.button("🔊 Speak", key=f"speak_{len(st.session_state.history)}"):
-                        st.iframe(
-                            f"""
-                            <script>
-                            speechSynthesis.cancel();
+                    with col1:
+                        if st.button("🔊 Speak", key=f"speak_{len(st.session_state.history)}"):
+                            st.components.v1.html(
+                                f"""
+                                <script>
+                                speechSynthesis.cancel();
 
-                            const msg = new SpeechSynthesisUtterance(`{ai_out}`);
+                                const msg = new SpeechSynthesisUtterance(`{ai_out}`);
 
-                            msg.rate = 0.92;
-                            msg.pitch = 1.02;
-                            msg.volume = 1;
+                                const voices = speechSynthesis.getVoices();
 
-                            speechSynthesis.speak(msg);
-                            </script>
-                            """,
-                            height=0,
-                        )
+                                msg.voice =
+                                    voices.find(v => v.name.includes("Google UK English Male")) ||
+                                    voices.find(v => v.name.includes("Google US English")) ||
+                                    voices.find(v => v.name.includes("Microsoft David")) ||
+                                    voices.find(v => v.lang === "en-US");
 
-                with col2:
-                    if st.button("⏹ Stop", key=f"stop_{len(st.session_state.history)}"):
-                        st.components.v1.html(
-                            f"""
-                            <script>
-                            speechSynthesis.cancel();
-                            ...
-                            speechSynthesis.speak(msg);
-                            </script>
-                            """,
-                            height=0
-)
+                                msg.rate = 0.95;
+                                msg.pitch = 1.05;
+                                msg.volume = 1.0;
+
+                                speechSynthesis.speak(msg);
+                                </script>
+                                """,
+                                height=0,
+                            )
+
+                    with col2:
+                        if st.button("⏹ Stop", key=f"stop_{len(st.session_state.history)}"):
+                            st.components.v1.html(
+                                """
+                                <script>
+                                speechSynthesis.cancel();
+                                </script>
+                                """,
+                                height=0,
+                            )
 
 
         except Exception as e:
