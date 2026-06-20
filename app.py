@@ -74,13 +74,13 @@ if st.button("🔊 Play Intro"):
 const voices = speechSynthesis.getVoices();
 
 msg.voice =
-    voices.find(v => v.name.includes("Microsoft Aria")) ||
-    voices.find(v => v.name.includes("Microsoft Jenny")) ||
-    voices.find(v => v.name.includes("Google UK English Female")) ||
-    voices.find(v => v.name.includes("Google US English")) ||
-    voices.find(v => v.lang === "en-US");
+    msg.voice =
+    voices.find(v => v.name.includes("Microsoft George")) ||
+    voices.find(v => v.name.includes("Google UK English Male")) ||
+    voices.find(v => v.name.includes("Microsoft David")) ||
+    voices.find(v => v.lang === "en-GB");
 
-msg.rate = 0.94;
+msg.rate = 0.93;
 msg.pitch = 1.08;
 msg.volume = 1.0;
 
