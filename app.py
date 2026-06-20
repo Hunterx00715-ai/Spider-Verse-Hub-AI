@@ -75,13 +75,11 @@ const voices = speechSynthesis.getVoices();
 
 msg.voice =
     msg.voice =
-    voices.find(v => v.name.includes("Microsoft Ravi")) ||
-    voices.find(v => v.name.includes("Microsoft Heera")) ||
-    voices.find(v => v.name.includes("Google UK English Female")) ||
+    voices.find(v => v.name.includes("Google UK English Male")) ||
     voices.find(v => v.name.includes("Google US English")) ||
-    voices[0];
-msg.rate = 1.05;
-msg.pitch = 1.40;
+    voices.find(v => v.lang === "en-US");
+msg.rate = 0.93;
+msg.pitch = 5.69;
 msg.volume = 0.8;
 
         speechSynthesis.speak(msg);
