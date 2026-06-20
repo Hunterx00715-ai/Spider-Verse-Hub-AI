@@ -79,9 +79,9 @@ msg.voice =
     voices.find(v => v.name.includes("Microsoft David")) ||
     voices.find(v => v.lang === "en-US");
 
-msg.rate = 1.02;
-msg.pitch = 1.50;
-msg.volume = 1.0;
+msg.rate = 1.05;
+msg.pitch = 1.40;
+msg.volume = 0.8;
 
         speechSynthesis.speak(msg);
         </script>
