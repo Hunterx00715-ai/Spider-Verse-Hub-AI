@@ -135,6 +135,14 @@ conversation_context = "\n".join(
 
 
 if query_str := st.chat_input("Ask about Spider-Man..."):
+    if "last_request" not in st.session_state:
+        st.session_state.last_request = 0
+
+    if time.time() - st.session_state.last_request < 3:
+        st.warning("Please wait a few seconds before sending another message.")
+        st.stop()
+
+    st.session_state.last_request = time.time()
 
     st.session_state.history.append({
         "role": "user",
